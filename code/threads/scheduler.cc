@@ -81,8 +81,26 @@ Scheduler::ReadyToRun (Thread *thread)
 	DEBUG(dbgThread, "Putting thread on ready list: " << thread->getName());
 
 	thread->setStatus(READY);
+    //preemption
+    /* 
+    int currentBurstTime = kernel->currentThread->getPredictedBurstTime();
+    int threadBurstTime = thread->getPredictedBurstTime();
+    if(threadBurstTime < currentBurstTime){
+        kernel->interrupt->YieldOnReturn();
+    }
+    else if(threadBurstTime == currentBurstTime && thread->getID() > kernel->currentThread->getID()){
+        kernel->interrupt->YieldOnReturn();
+    }
+    
+    DEBUG(dbgSJF, 
+    "Thread [" << kernel->currentThread->getID() << 
+    "]'s and thread [" << thread->getID() << 
+    "]'s burst time are  [" << kernel->currentThread->getPredictedBurstTime() <<
+    "] and [" << thread->getPredictedBurstTime() <<
+    "]***");
+    */
     readyQueue->Insert(thread);
-	
+	DEBUG(dbgSJF, "<I>Tick[" << kernel->stats->totalTicks << "]: Thread [" << thread->getID() << "] is inserted into readyQueue")
 }
 //<TODO>
 
@@ -105,7 +123,8 @@ Scheduler::FindNextToRun ()
         return NULL;
     }
     else{
-        //DEBUG MSG
+        ListIterator<Thread*> *t = new ListIterator<Thread*>(readyQueue);
+        DEBUG(dbgSJF, "<R>Tick[" << kernel->stats->totalTicks << "]: Thread [" << t->Item()->getID() << "] is removed from readyQueue");
         return readyQueue->RemoveFront();
     }
 }

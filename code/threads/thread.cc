@@ -266,6 +266,23 @@ Thread::Sleep (bool finishing)
 	while ((nextThread = kernel->scheduler->FindNextToRun()) == NULL)
 		kernel->interrupt->Idle();	// no one to run, wait for an interrupt
 
+    if(nextThread->getID() != kernel->currentThread->getID()){
+        DEBUG(dbgSJF, 
+        "<YS/S>Tick[" << kernel->stats->totalTicks <<
+        "]: Thread[" << nextThread->getID() <<
+        "] is now selected for execution, thread[" << kernel->currentThread->getID() <<
+        "] is replaced, and it has executed [" << kernel->currentThread->getRunTime() <<
+        "] ticks");
+    }
+    int newPredictedBurstTime = (kernel->currentThread->getRunTime() + kernel->currentThread->getPredictedBurstTime()) / 2;
+    DEBUG(dbgSJF, 
+    "<U>Tick[" << kernel->stats->totalTicks << 
+    "]: Thread [" << kernel->currentThread->getID() <<
+    "] update approximate burst time, from: [" << kernel->currentThread->getPredictedBurstTime() <<
+    "] + [" << kernel->currentThread->getRunTime() <<
+    "], to [" << newPredictedBurstTime << "]");
+    kernel->currentThread->setPredictedBurstTime(newPredictedBurstTime);
+
 		// returns when it's time for us to run
 	kernel->scheduler->Run(nextThread, finishing);
 }
